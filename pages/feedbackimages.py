@@ -334,6 +334,7 @@ def main():
                 "count": 1
             } for s in final_screenshots])
             
+            
             # User Activity Timeline - Scatter plot with users on Y-axis and datetime on X-axis
             fig_scatter = px.scatter(
                 df, 
