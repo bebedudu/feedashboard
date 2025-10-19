@@ -22,6 +22,8 @@ SCREENSHOT_BASE_URL = "https://raw.githubusercontent.com/bebedudu/programfeedbac
 
 
 cache_time = 90  # Cache time in seconds
+image_per_page = 10  # Number of images to display per page
+max_image_per_page = 500  # Maximum number of images allowed per page
 
 def get_token():
     try:
@@ -62,7 +64,7 @@ GITHUB_API_URL_SS = "https://api.github.com/repos/bebedudu/programfeedback/conte
 HEADERS_SS = {"Authorization": f"token {GITHUB_TOKEN}"}
 
 # Function to get image URLs
-def get_image_urls(limit=50):
+def get_image_urls(limit=image_per_page):
     response = requests.get(GITHUB_API_URL_SS, headers=HEADERS_SS)
     if response.status_code == 200:
         files = response.json()
@@ -136,7 +138,7 @@ def download_image(url):
 
 # Update check_new_screenshots to accept limit
 @st.cache_data(ttl=cache_time)
-def check_new_screenshots(latest_timestamp, limit=50):  # Add limit parameter
+def check_new_screenshots(latest_timestamp, limit=image_per_page):  # Add limit parameter
     current_screenshots = fetch_screenshots()
     latest = max([s["timestamp"] for s in current_screenshots])
     return latest > latest_timestamp, current_screenshots
@@ -209,8 +211,8 @@ def main():
     num_images = st.sidebar.number_input(
         "Number of images to display", 
         min_value=1, 
-        max_value=250, 
-        value=50,
+        max_value=max_image_per_page, 
+        value=image_per_page,
         step=1
     )
     
@@ -264,7 +266,7 @@ def main():
         final_screenshots = user_screenshots[:num_images]
     
     # Add pagination controls
-    ITEMS_PER_PAGE = 50
+    ITEMS_PER_PAGE = image_per_page
     total_pages = (len(final_screenshots) + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE
     page = st.sidebar.number_input("Page", 1, total_pages, 1)
 
@@ -326,14 +328,74 @@ def main():
             df = pd.DataFrame([{
                 "user": s["user"],
                 "date": s["timestamp"].date(),
-                "count": 1
+                "datetime": s["timestamp"],
+                "count": 1,
+                "image_url": s["url"],
+                "filename": s["name"]
             } for s in final_screenshots])
             
+            st.subheader("📊 Visual Analytics")
+            
+            # User Activity Timeline - Scatter plot with users on Y-axis and datetime on X-axis
+            fig_scatter = px.scatter(
+                df, 
+                x="datetime", 
+                y="user",
+                title="User Activity Timeline (Hover over dots to see details)",
+                labels={"datetime": "Date & Time", "user": "User"},
+                hover_data={
+                    "datetime": "|%Y-%m-%d %H:%M:%S", 
+                    "user": True,
+                    "filename": True,
+                    "image_url": False
+                }
+            )
+            
+            fig_scatter.update_traces(
+                marker=dict(size=10, opacity=0.7, line=dict(width=1, color='DarkSlateGrey')),
+                hovertemplate="<b>%{y}</b><br>" +
+                              "Time: %{x|%Y-%m-%d %H:%M:%S}<br>" +
+                              "File: %{customdata[2]}<br>" +
+                              "<extra></extra>"
+            )
+            
+            fig_scatter.update_layout(
+                height=max(400, len(df["user"].unique()) * 50),
+                showlegend=False,
+                xaxis_title="Date & Time",
+                yaxis_title="User",
+                hovermode='closest'
+            )
+            
+            # Display the scatter plot without rerun
+            st.plotly_chart(fig_scatter, use_container_width=True, key="scatter_chart")
+            
+            # Activity Heatmap - Shows concentration of activity
+            df["hour"] = df["datetime"].dt.hour
+            df["date_only"] = df["datetime"].dt.date
+            heatmap_data = df.groupby(["user", "date_only"]).size().reset_index(name="count")
+            
+            fig_heatmap = px.density_heatmap(
+                heatmap_data,
+                x="date_only",
+                y="user",
+                z="count",
+                title="User Activity Heatmap (Activity Intensity by Date)",
+                labels={"date_only": "Date", "user": "User", "count": "Number of Screenshots"},
+                color_continuous_scale="Blues"
+            )
+            fig_heatmap.update_layout(
+                height=max(400, len(heatmap_data["user"].unique()) * 50)
+            )
+            st.plotly_chart(fig_heatmap, use_container_width=True)
+            
+            # Original timeline chart
             timeline = df.groupby("date").count().reset_index()
             fig = px.line(timeline, x="date", y="count", 
-                         title="Screenshot Activity Timeline")
+                         title="Screenshot Activity Timeline (Overall Trend)")
             st.plotly_chart(fig)
             
+            # User distribution pie chart
             user_dist = df["user"].value_counts().reset_index()
             user_dist.columns = ["User", "Count"]
             fig = px.pie(user_dist, names="User", values="Count",
