@@ -22,7 +22,7 @@ SCREENSHOT_BASE_URL = "https://raw.githubusercontent.com/bebedudu/programfeedbac
 
 
 cache_time = 90  # Cache time in seconds
-image_per_page = 10  # Number of images to display per page
+image_per_page = 100  # Number of images to display per page
 max_image_per_page = 500  # Maximum number of images allowed per page
 
 def get_token():
