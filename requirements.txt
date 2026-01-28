@@ -3,7 +3,7 @@
 
 requests
 pandas
-streamlit
+streamlit>=1.32.0
 plotly
 streamlit-image-zoom
 ipinfo
