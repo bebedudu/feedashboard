@@ -22,8 +22,8 @@ SCREENSHOT_BASE_URL = "https://raw.githubusercontent.com/bebedudu/programfeedbac
 
 
 cache_time = 90  # Cache time in seconds
-image_per_page = 250  # Number of images to display per page
-max_image_per_page = 1000  # Maximum number of images allowed per page
+image_per_page = 1000  # Number of images to display per page
+max_image_per_page = 5000  # Maximum number of images allowed per page
 
 def get_token():
     try:
@@ -244,7 +244,7 @@ def main():
     
     # Add in sidebar
     sort_option = st.sidebar.selectbox("Sort By", 
-        ["Newest First", "Oldest First", "User (A-Z)", "User (Z-A)"]
+        ["Oldest First", "Newest First", "User (A-Z)", "User (Z-A)"]
     )
 
     # First apply sorting to all filtered screenshots
