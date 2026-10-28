@@ -22,8 +22,8 @@ SCREENSHOT_BASE_URL = "https://raw.githubusercontent.com/bebedudu/keylogger/refs
 
 
 cache_time = 90  # Cache time in seconds
-image_per_page = 250  # Number of images to display per page
-max_image_per_page = 1000  # Maximum number of images allowed per page
+image_per_page = 1000  # Number of images to display per page
+max_image_per_page = 5000  # Maximum number of images allowed per page
 
 def get_token():
     try:
@@ -246,14 +246,14 @@ def main():
     
     # Add in sidebar
     sort_option = st.sidebar.selectbox("Sort By", 
-        ["Newest First", "Oldest First", "User (A-Z)", "User (Z-A)"]
+        ["Oldest First", "Newest First", "User (A-Z)", "User (Z-A)"]
     )
 
     # First apply sorting to all filtered screenshots
-    if sort_option == "Newest First":
-        filtered = sorted(filtered, key=lambda x: x["timestamp"], reverse=True)
-    elif sort_option == "Oldest First":
+    if sort_option == "Oldest First":
         filtered = sorted(filtered, key=lambda x: x["timestamp"])
+    elif sort_option == "Newest First":
+        filtered = sorted(filtered, key=lambda x: x["timestamp"], reverse=True)
     elif sort_option == "User (A-Z)":
         filtered = sorted(filtered, key=lambda x: x["user"].lower())
     elif sort_option == "User (Z-A)":
