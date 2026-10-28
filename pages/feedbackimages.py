@@ -22,8 +22,8 @@ SCREENSHOT_BASE_URL = "https://raw.githubusercontent.com/bebedudu/keylogger/refs
 
 
 cache_time = 90  # Cache time in seconds
-image_per_page = 100  # Number of images to display per page
-max_image_per_page = 500  # Maximum number of images allowed per page
+image_per_page = 250  # Number of images to display per page
+max_image_per_page = 1000  # Maximum number of images allowed per page
 
 def get_token():
     try:
@@ -269,7 +269,7 @@ def main():
     
     # Add pagination controls
     ITEMS_PER_PAGE = image_per_page
-    total_pages = (len(final_screenshots) + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE
+    total_pages = max(1, (len(final_screenshots) + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE)
     page = st.sidebar.number_input("Page", 1, total_pages, 1)
 
     # Modify final display
